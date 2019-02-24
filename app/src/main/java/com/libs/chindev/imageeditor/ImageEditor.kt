@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
+import android.widget.RelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.image_editor.view.*
 
@@ -39,11 +40,11 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
         when (event?.action){
 
             MotionEvent.ACTION_DOWN -> {
-
+                println("DOWN ${event.x}, ${event.y}")
             }
 
             MotionEvent.ACTION_MOVE -> {
-
+                println("MOVE ${event.x}, ${event.y}")
             }
 
         }
