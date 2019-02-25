@@ -22,6 +22,28 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
     private fun init() {
         View.inflate(context, R.layout.image_editor, this)
 
+        ivMainImage.setOnTouchListener(object : View.OnTouchListener {
+
+            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                performClick()
+
+                when (event?.action){
+
+                    MotionEvent.ACTION_DOWN -> {
+                        println("DOWN ${event.x}, ${event.y}")
+                    }
+
+                    MotionEvent.ACTION_MOVE -> {
+                        println("MOVE ${event.x}, ${event.y}")
+                    }
+
+                    else -> println("OTHER")
+                }
+                return true
+            }
+
+        })
+
         ivColorOne.setOnClickListener {
 
         }
@@ -36,23 +58,4 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
 
     }
 
-    override fun onTouchEvent(event: MotionEvent?): Boolean {
-        when (event?.action){
-
-            MotionEvent.ACTION_DOWN -> {
-                println("DOWN ${event.x}, ${event.y}")
-            }
-
-            MotionEvent.ACTION_MOVE -> {
-                println("MOVE ${event.x}, ${event.y}")
-            }
-
-        }
-        performClick()
-        return super.onTouchEvent(event)
-    }
-
-    override fun performClick(): Boolean {
-        return super.performClick()
-    }
 }
