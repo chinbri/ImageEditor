@@ -1,12 +1,13 @@
 package com.libs.chindev.imageeditor
 
 import android.content.Context
+import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
-import android.widget.RelativeLayout
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.image_editor.view.*
+import android.graphics.drawable.BitmapDrawable
 
 
 class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
@@ -55,6 +56,26 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
         ivColorThree.setOnClickListener {
 
         }
+
+
+        val options = BitmapFactory.Options()
+        options.inMutable = true
+
+        //Create a new image bitmap and attach a brand new canvas to it
+        val tempBitmap = BitmapFactory.decodeStream(context.assets.open("map.png"), null, options)
+        val tempCanvas = Canvas(tempBitmap)
+
+//Draw the image bitmap into the cavas
+        tempCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
+
+        val paint = Paint()
+        paint.color = context.resources.getColor(R.color.colorAccent)
+
+//Draw everything else you want into the canvas, in this example a rectangle with rounded edges
+        tempCanvas.drawRoundRect(RectF(100f, 100f, 100f, 100f), 20f, 20f, paint)
+
+//Attach the canvas to the ImageView
+        ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
 
     }
 
