@@ -8,6 +8,7 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import kotlinx.android.synthetic.main.image_editor.view.*
 import android.graphics.drawable.BitmapDrawable
+import com.libs.chindev.imageeditor.paint.PaintBuilder
 
 
 class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
@@ -68,11 +69,16 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
 //Draw the image bitmap into the cavas
         tempCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
 
-        val paint = Paint()
-        paint.color = context.resources.getColor(R.color.colorAccent)
+        val paint = PaintBuilder()
+            .setColor(context.resources.getColor(R.color.colorAccent))
+            .setStrokeWidth(20f)
+            .build()
 
-//Draw everything else you want into the canvas, in this example a rectangle with rounded edges
-        tempCanvas.drawRoundRect(RectF(100f, 100f, 100f, 100f), 20f, 20f, paint)
+        tempCanvas.drawLine(0f, 0f, 1000f, 1000f, paint)
+
+        tempCanvas.save();
+        tempCanvas.translate(0f, 0f);
+        tempCanvas.restore();
 
 //Attach the canvas to the ImageView
         ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
