@@ -11,8 +11,6 @@ import android.graphics.drawable.BitmapDrawable
 import android.view.ViewTreeObserver
 import com.libs.chindev.imageeditor.paint.PaintBuilder
 import android.util.TypedValue
-import android.opengl.ETC1.getHeight
-import android.opengl.ETC1.getWidth
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
 
@@ -24,7 +22,7 @@ import android.graphics.drawable.Drawable
 class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     companion object {
-        const val EVENT_DISTANCE = 3
+        const val EVENT_DISTANCE = 0
     }
 
     private val colorOne = context.resources.getColor(R.color.defaultColorOne)
@@ -58,8 +56,9 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
         val paint = PaintBuilder()
             .setColor(colorThree)
-            .setStrokeWidth(20f)
+            .setStrokeWidth(15f)
             .build()
+        paint.style = Paint.Style.STROKE;
 
         ivMainImage.viewTreeObserver
             .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -70,8 +69,8 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                         val aspectRatioBitmap = tempBitmap.width / tempBitmap.height
                         val aspectRatioImageView = ivMainImage.width / ivMainImage.height
 
-                        var newBitmapWidth = 0
-                        var newBitmapHeight = 0
+                        val newBitmapWidth: Int
+                        val newBitmapHeight: Int
                         if(aspectRatioBitmap > aspectRatioImageView){
                             newBitmapWidth = ivMainImage.width
                             newBitmapHeight = ivMainImage.width / aspectRatioBitmap
@@ -147,6 +146,8 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
         )
     }
 
+    var path = Path()
+
     private fun initializeMotionCapture(
         tempCanvas: Canvas,
         tempBitmap: Bitmap?,
@@ -160,6 +161,8 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                 when (event?.action) {
 
                     MotionEvent.ACTION_DOWN -> {
+                        path = Path()
+                        path.moveTo(event.x, event.y)
                         println("DOWN ${event.x}, ${event.y}")
                     }
 
@@ -170,13 +173,15 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
                         if (checkMovement(previousCoordinates, event)) {
 
-                            tempCanvas.drawLine(
-                                previousCoordinates?.x ?: event.x,
-                                previousCoordinates?.y ?: event.y,
-                                event.x,
-                                event.y,
-                                paint
-                            )
+                            path.lineTo(event.x, event.y)
+                            tempCanvas.drawPath(path, paint)
+//                            tempCanvas.drawLine(
+//                                previousCoordinates?.x ?: event.x,
+//                                previousCoordinates?.y ?: event.y,
+//                                event.x,
+//                                event.y,
+//                                paint
+//                            )
 
                         }
 
@@ -189,7 +194,8 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                     }
 
                     MotionEvent.ACTION_UP -> {
-
+                        tempCanvas.drawPath(path, paint)
+                        path = Path()
                     }
 
                     else -> println("OTHER")
@@ -211,11 +217,11 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
     fun checkMovement(previousEvent: PointF?, event: MotionEvent?): Boolean{
 
-        if(previousEvent != null && event != null){
-            return Math.abs(previousEvent.x - event.x) > EVENT_DISTANCE
-                    || Math.abs(previousEvent.y - event.y) > EVENT_DISTANCE
+        return if(previousEvent != null && event != null){
+            (Math.abs(previousEvent.x - event.x) > EVENT_DISTANCE
+                    || Math.abs(previousEvent.y - event.y) > EVENT_DISTANCE)
         }else{
-            return false
+            false
         }
 
     }
