@@ -11,7 +11,17 @@ import android.graphics.drawable.BitmapDrawable
 import com.libs.chindev.imageeditor.paint.PaintBuilder
 
 
-class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
+class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    companion object {
+        const val EVENT_DISTANCE = 10
+    }
+
+    private val colorOne = context.resources.getColor(R.color.defaultColorOne)
+    private val colorTwo = context.resources.getColor(R.color.defaultColorTwo)
+    private val colorThree = context.resources.getColor(R.color.defaultColorThree)
+
+    private var previousCoordinates: PointF? = null
 
     constructor(context: Context) : this(context, null){
         init()
@@ -23,6 +33,18 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
 
     private fun init() {
         View.inflate(context, R.layout.image_editor, this)
+
+        val options = BitmapFactory.Options()
+        options.inMutable = true
+
+        //Create a new image bitmap and attach a brand new canvas to it
+        val tempBitmap = BitmapFactory.decodeStream(context.assets.open("map.png"), null, options)
+        var tempCanvas = Canvas(tempBitmap)
+
+        val paint = PaintBuilder()
+            .setColor(colorOne)
+            .setStrokeWidth(20f)
+            .build()
 
         ivMainImage.setOnTouchListener(object : View.OnTouchListener {
 
@@ -36,11 +58,45 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
                     }
 
                     MotionEvent.ACTION_MOVE -> {
-                        println("MOVE ${event.x}, ${event.y}")
+
+                        //Draw the image bitmap into the cavas
+                        tempCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
+
+                        if(checkMovement(previousCoordinates, event)){
+
+                            tempCanvas.drawLine(
+                                previousCoordinates?.x ?: event.x,
+                                previousCoordinates?.y ?: event.y,
+                                event.x,
+                                event.y,
+                                paint)
+
+                        }
+
+                        tempCanvas.save();
+                        tempCanvas.translate(0f, 0f);
+                        tempCanvas.restore();
+
+                    }
+
+                    MotionEvent.ACTION_UP -> {
+
+                        //Attach the canvas to the ImageView
+                        ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
+
                     }
 
                     else -> println("OTHER")
                 }
+
+                println("PREVIOUSEVENT ${previousCoordinates?.x} ${previousCoordinates?.y}  ---   EVENT ${event?.x} ${event?.y}")
+
+                if(previousCoordinates == null || checkMovement(previousCoordinates, event)){
+
+                    previousCoordinates = PointF(event!!.x, event.y)
+
+                }
+
                 return true
             }
 
@@ -58,30 +114,16 @@ class ImageEditor(context: Context?, attrs: AttributeSet?, defStyleAttr: Int) : 
 
         }
 
+    }
 
-        val options = BitmapFactory.Options()
-        options.inMutable = true
+    fun checkMovement(previousEvent: PointF?, event: MotionEvent?): Boolean{
 
-        //Create a new image bitmap and attach a brand new canvas to it
-        val tempBitmap = BitmapFactory.decodeStream(context.assets.open("map.png"), null, options)
-        val tempCanvas = Canvas(tempBitmap)
-
-//Draw the image bitmap into the cavas
-        tempCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
-
-        val paint = PaintBuilder()
-            .setColor(context.resources.getColor(R.color.colorAccent))
-            .setStrokeWidth(20f)
-            .build()
-
-        tempCanvas.drawLine(0f, 0f, 1000f, 1000f, paint)
-
-        tempCanvas.save();
-        tempCanvas.translate(0f, 0f);
-        tempCanvas.restore();
-
-//Attach the canvas to the ImageView
-        ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
+        if(previousEvent != null && event != null){
+            return Math.abs(previousEvent.x - event.x) > EVENT_DISTANCE
+                    || Math.abs(previousEvent.y - event.y) > EVENT_DISTANCE
+        }else{
+            return false
+        }
 
     }
 
