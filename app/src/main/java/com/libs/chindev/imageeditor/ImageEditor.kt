@@ -21,6 +21,7 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
     companion object {
         const val EVENT_DISTANCE = 0
+        const val STROKE_WIDTH = 15f
     }
 
     private val colorOne = context.resources.getColor(R.color.defaultColorOne)
@@ -47,13 +48,17 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
         //Create a new image bitmap and attach a brand new canvas to it
 //        var tempBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
-        var tempBitmap = BitmapFactory.decodeStream(context.assets.open("drone.jpg"), null, options)
+        var originalBitmap = BitmapFactory.decodeStream(context.assets.open("wheel.jpg"), null, options)
+        var tempBitmap = originalBitmap
+        var scale = 1f
 
         val paint = PaintBuilder()
             .setColor(colorThree)
-            .setStrokeWidth(15f)
+            .setStrokeWidth(STROKE_WIDTH)
             .build()
-        paint.style = Paint.Style.STROKE;
+        paint.style = Paint.Style.STROKE
+
+        var scaledPaint: Paint = paint
 
         ivMainImage.viewTreeObserver
             .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -61,26 +66,34 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                     ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
                     if(!imageInitialized){
-                        val aspectRatioBitmap = tempBitmap.width / tempBitmap.height
+                        val aspectRatioBitmap = originalBitmap.width.toFloat() / originalBitmap.height
                         val aspectRatioImageView = ivMainImage.width / ivMainImage.height
 
                         val newBitmapWidth: Int
                         val newBitmapHeight: Int
                         if(aspectRatioBitmap > aspectRatioImageView){
                             newBitmapWidth = ivMainImage.width
-                            newBitmapHeight = ivMainImage.width / aspectRatioBitmap
+                            newBitmapHeight = (ivMainImage.width / aspectRatioBitmap).toInt()
                         }else{
                             newBitmapHeight = ivMainImage.height
-                            newBitmapWidth = ivMainImage.height * aspectRatioBitmap
+                            newBitmapWidth = (ivMainImage.height * aspectRatioBitmap).toInt()
                         }
 
-                        tempBitmap = Bitmap.createScaledBitmap(tempBitmap, newBitmapWidth, newBitmapHeight, false)
+                        tempBitmap = Bitmap.createScaledBitmap(originalBitmap, newBitmapWidth, newBitmapHeight, false)
+                        scale = originalBitmap.width.toFloat() / newBitmapWidth
+
+                        scaledPaint = PaintBuilder()
+                            .setColor(colorThree)
+                            .setStrokeWidth(STROKE_WIDTH * scale)
+                            .build()
+                        scaledPaint.style = Paint.Style.STROKE
 
                         imageInitialized = true
                     }
 
 
                     val tempCanvas = Canvas(tempBitmap)
+                    val originalCanvas = Canvas(originalBitmap)
 
                     val bitmapWidth = tempBitmap.width
                     val bitmapHeight = tempBitmap.height
@@ -99,7 +112,7 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                     ivMainImage.layoutParams = layoutParams
                     ivMainImage.setImageBitmap(tempBitmap)
 
-                    initializeMotionCapture(tempCanvas, tempBitmap, paint)
+                    initializeMotionCapture(originalCanvas, originalBitmap, tempCanvas, tempBitmap, paint, scaledPaint, scale)
 
                 }
             })
@@ -142,11 +155,16 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
     }
 
     var path = Path()
+    var scaledPath = Path()
 
     private fun initializeMotionCapture(
+        originalCanvas: Canvas,
+        originalBitmap: Bitmap?,
         tempCanvas: Canvas,
         tempBitmap: Bitmap?,
-        paint: Paint
+        paint: Paint,
+        scaledPaint: Paint,
+        scale: Float
     ) {
         ivMainImage.setOnTouchListener(object : OnTouchListener {
 
@@ -157,7 +175,10 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
                     MotionEvent.ACTION_DOWN -> {
                         path = Path()
+                        scaledPath = Path()
                         path.moveTo(event.x, event.y)
+                        scaledPath.moveTo(event.x * scale, event.y * scale)
+
                         println("DOWN ${event.x}, ${event.y}")
                     }
 
@@ -169,20 +190,19 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                         if (checkMovement(previousCoordinates, event)) {
 
                             path.lineTo(event.x, event.y)
+                            scaledPath.lineTo(event.x * scale, event.y * scale)
                             tempCanvas.drawPath(path, paint)
-//                            tempCanvas.drawLine(
-//                                previousCoordinates?.x ?: event.x,
-//                                previousCoordinates?.y ?: event.y,
-//                                event.x,
-//                                event.y,
-//                                paint
-//                            )
+                            originalCanvas.drawPath(scaledPath, scaledPaint)
 
                         }
 
                         tempCanvas.save()
                         tempCanvas.translate(0f, 0f)
                         tempCanvas.restore()
+
+                        originalCanvas.save()
+                        originalCanvas.translate(0f, 0f)
+                        originalCanvas.restore()
 
                         //Attach the canvas to the ImageView
                         ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
@@ -191,11 +211,14 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                     MotionEvent.ACTION_UP -> {
 
                         tempCanvas.drawPath(path, paint)
+                        originalCanvas.drawPath(scaledPath, scaledPaint)
+
                         path = Path()
+                        scaledPath = Path()
 
                         val f = File("${context.externalCacheDir}/file.jpg")
 
-                        tempBitmap?.compress(
+                        originalBitmap?.compress(
                             Bitmap.CompressFormat.JPEG,
                             100,
                             FileOutputStream(f)
