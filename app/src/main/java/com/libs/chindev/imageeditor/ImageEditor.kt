@@ -13,11 +13,9 @@ import com.libs.chindev.imageeditor.paint.PaintBuilder
 import android.util.TypedValue
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-
-
-
-
-
+import androidx.core.graphics.applyCanvas
+import java.io.File
+import java.io.FileOutputStream
 
 class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
@@ -48,11 +46,8 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
         options.inMutable = true
 
         //Create a new image bitmap and attach a brand new canvas to it
-        var tempBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
-//
-//        tempBitmap = Bitmap.createScaledBitmap(tempBitmap, ivMainImage.width, ivMainImage.height, false)
-////            BitmapFactory.decodeStream(context.assets.open("map.png"), null, options)
-//        val tempCanvas = Canvas(tempBitmap)
+//        var tempBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
+        var tempBitmap = BitmapFactory.decodeStream(context.assets.open("drone.jpg"), null, options)
 
         val paint = PaintBuilder()
             .setColor(colorThree)
@@ -185,17 +180,26 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
                         }
 
-                        tempCanvas.save();
-                        tempCanvas.translate(0f, 0f);
-                        tempCanvas.restore();
+                        tempCanvas.save()
+                        tempCanvas.translate(0f, 0f)
+                        tempCanvas.restore()
 
                         //Attach the canvas to the ImageView
                         ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
                     }
 
                     MotionEvent.ACTION_UP -> {
+
                         tempCanvas.drawPath(path, paint)
                         path = Path()
+
+                        val f = File("${context.externalCacheDir}/file.jpg")
+
+                        tempBitmap?.compress(
+                            Bitmap.CompressFormat.JPEG,
+                            100,
+                            FileOutputStream(f)
+                        )
                     }
 
                     else -> println("OTHER")
