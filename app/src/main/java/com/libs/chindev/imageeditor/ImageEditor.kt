@@ -10,25 +10,20 @@ import kotlinx.android.synthetic.main.image_editor.view.*
 import android.graphics.drawable.BitmapDrawable
 import android.view.ViewTreeObserver
 import com.libs.chindev.imageeditor.paint.PaintBuilder
-import android.util.TypedValue
 import android.graphics.Bitmap
 import android.graphics.drawable.Drawable
-import androidx.core.graphics.applyCanvas
 import java.io.File
 import java.io.FileOutputStream
 
 class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     companion object {
-        const val EVENT_DISTANCE = 0
         const val STROKE_WIDTH = 15f
     }
 
     private val colorOne = context.resources.getColor(R.color.defaultColorOne)
     private val colorTwo = context.resources.getColor(R.color.defaultColorTwo)
     private val colorThree = context.resources.getColor(R.color.defaultColorThree)
-
-    private var previousCoordinates: PointF? = null
 
     constructor(context: Context) : this(context, null){
         init()
@@ -46,8 +41,7 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
         val options = BitmapFactory.Options()
         options.inMutable = true
 
-        //Create a new image bitmap and attach a brand new canvas to it
-//        var tempBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
+//        var originalBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
         var originalBitmap = BitmapFactory.decodeStream(context.assets.open("wheel.jpg"), null, options)
         var tempBitmap = originalBitmap
         var scale = 1f
@@ -146,14 +140,6 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
         return bitmap
     }
 
-    private fun convertToPixels(dip: Float): Float {
-        return TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            dip,
-            resources.displayMetrics
-        )
-    }
-
     var path = Path()
     var scaledPath = Path()
 
@@ -187,14 +173,10 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                         //Draw the image bitmap into the cavas
                         tempCanvas.drawBitmap(tempBitmap, 0f, 0f, null)
 
-                        if (checkMovement(previousCoordinates, event)) {
-
-                            path.lineTo(event.x, event.y)
-                            scaledPath.lineTo(event.x * scale, event.y * scale)
-                            tempCanvas.drawPath(path, paint)
-                            originalCanvas.drawPath(scaledPath, scaledPaint)
-
-                        }
+                        path.lineTo(event.x, event.y)
+                        scaledPath.lineTo(event.x * scale, event.y * scale)
+                        tempCanvas.drawPath(path, paint)
+                        originalCanvas.drawPath(scaledPath, scaledPaint)
 
                         tempCanvas.save()
                         tempCanvas.translate(0f, 0f)
@@ -225,32 +207,13 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                         )
                     }
 
-                    else -> println("OTHER")
-                }
-
-                println("PREVIOUSEVENT ${previousCoordinates?.x} ${previousCoordinates?.y}  ---   EVENT ${event?.x} ${event?.y}")
-
-                if (previousCoordinates == null || checkMovement(previousCoordinates, event)) {
-
-                    previousCoordinates = PointF(event!!.x, event.y)
-
+                    else -> return false
                 }
 
                 return true
             }
 
         })
-    }
-
-    fun checkMovement(previousEvent: PointF?, event: MotionEvent?): Boolean{
-
-        return if(previousEvent != null && event != null){
-            (Math.abs(previousEvent.x - event.x) > EVENT_DISTANCE
-                    || Math.abs(previousEvent.y - event.y) > EVENT_DISTANCE)
-        }else{
-            false
-        }
-
     }
 
 }
