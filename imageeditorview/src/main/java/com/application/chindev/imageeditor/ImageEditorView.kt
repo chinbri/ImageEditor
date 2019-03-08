@@ -1,4 +1,4 @@
-package com.libs.chindev.imageeditor
+package com.application.chindev.imageeditor
 
 import android.content.Context
 import android.graphics.*
@@ -6,13 +6,14 @@ import android.util.AttributeSet
 import android.view.MotionEvent
 import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
-import kotlinx.android.synthetic.main.image_editor.view.*
 import android.graphics.drawable.BitmapDrawable
 import android.view.ViewTreeObserver
-import com.libs.chindev.imageeditor.paint.PaintBuilder
+import com.application.chindev.imageeditor.paint.PaintBuilder
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.widget.ImageView
+import com.example.test.imageeditorview.R
+import kotlinx.android.synthetic.main.image_editor.view.*
 
 class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 

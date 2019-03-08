@@ -1,4 +1,4 @@
-package com.libs.chindev.imageeditor.paint
+package com.application.chindev.imageeditor.paint
 
 import android.graphics.Paint
 

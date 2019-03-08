@@ -1,4 +1,4 @@
-package com.libs.chindev.imageeditor
+package com.application.chindev.imageeditor
 
 import org.junit.Test
 

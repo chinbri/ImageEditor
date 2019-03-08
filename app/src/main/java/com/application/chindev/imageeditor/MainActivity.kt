@@ -1,4 +1,4 @@
-package com.libs.chindev.imageeditor
+package com.application.chindev.imageeditor
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         val options = BitmapFactory.Options()
         options.inMutable = false
 
-        //        var originalBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
+        //var originalBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
         val originalBitmap = BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options)
 
         originalBitmap?.let {
