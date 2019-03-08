@@ -14,19 +14,29 @@ import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.widget.ImageView
 
-
-class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
-
-    companion object {
-        const val STROKE_WIDTH = 15f
-    }
+class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     private var path = Path()
     private var scaledPath = Path()
     private var scale = 1f
+    var strokeWidth = 15f
+        set(value) {
+            paint.strokeWidth = value
+            scaledPaint.strokeWidth = value
+            field = value
+        }
 
-    private lateinit var paint: Paint
-    private lateinit var scaledPaint: Paint
+    private var paint: Paint = PaintBuilder()
+        .setColor(resources.getColor(android.R.color.transparent))
+        .setStrokeWidth(strokeWidth)
+        .setStyle(Paint.Style.STROKE)
+        .build()
+
+    private var scaledPaint: Paint = PaintBuilder()
+        .setColor(resources.getColor(android.R.color.transparent))
+        .setStrokeWidth(strokeWidth)
+        .setStyle(Paint.Style.STROKE)
+        .build()
 
     private val colorList: MutableList<Int> = mutableListOf()
 
@@ -51,15 +61,31 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
         colorList.add(color)
 
-        val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, null) as ImageView
-        colorView.setColorFilter(color)
+        val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, null)
+        val ivColor = colorView.findViewById<ImageView>(R.id.ivColor)
+
+        ivColor.setColorFilter(color)
+
         llColours.addView(colorView)
 
         colorView.setOnClickListener {
             paint.color = color
             scaledPaint.color = color
+            highlightColor(it)
         }
 
+    }
+
+
+    private fun highlightColor(colorView: View) {
+        if (llColours.childCount > 0) {
+            for (i in 0 until llColours.childCount) {
+                val child = llColours.getChildAt(i)
+                val ivHighlight = child.findViewById<ImageView>(R.id.ivHighlight)
+                ivHighlight.visibility = View.INVISIBLE
+            }
+        }
+        colorView.findViewById<ImageView>(R.id.ivHighlight).visibility = View.VISIBLE
     }
 
     fun setup(originalBitmap: Bitmap){
@@ -67,12 +93,6 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
         modifiedBitmap = originalBitmap.copy(originalBitmap.getConfig(), true)
 
         var tempBitmap = originalBitmap
-
-        paint = PaintBuilder()
-            .setColor(resources.getColor(R.color.defaultColorOne))
-            .setStrokeWidth(STROKE_WIDTH)
-            .setStyle(Paint.Style.STROKE)
-            .build()
 
         ivMainImage.viewTreeObserver
             .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -97,11 +117,7 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                         tempBitmap = Bitmap.createScaledBitmap(modifiedBitmap, newBitmapWidth, newBitmapHeight, false)
                         scale = modifiedBitmap.width.toFloat() / newBitmapWidth
 
-                        scaledPaint = PaintBuilder()
-                            .setColor(resources.getColor(R.color.defaultColorOne))
-                            .setStrokeWidth(STROKE_WIDTH * scale)
-                            .setStyle(Paint.Style.STROKE)
-                            .build()
+                        scaledPaint.strokeWidth = strokeWidth * scale
 
                         imageInitialized = true
                     }

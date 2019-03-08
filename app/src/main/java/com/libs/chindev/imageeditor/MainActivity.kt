@@ -24,9 +24,11 @@ class MainActivity : AppCompatActivity() {
         val originalBitmap = BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options)
 
         originalBitmap?.let {
-            imageEditor.addColor(resources.getColor(R.color.defaultColorTwo))
-            imageEditor.addColor(resources.getColor(R.color.defaultColorThree))
             imageEditor.setup(originalBitmap)
+            imageEditor.addColor(resources.getColor(R.color.defaultColorTwo))
+            imageEditor.addColor(resources.getColor(R.color.defaultColorOne))
+            imageEditor.addColor(resources.getColor(R.color.colorAccent))
+            imageEditor.strokeWidth = 5f
         }
 
         btnSave.setOnClickListener {
