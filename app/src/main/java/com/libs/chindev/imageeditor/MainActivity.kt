@@ -24,6 +24,8 @@ class MainActivity : AppCompatActivity() {
         val originalBitmap = BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options)
 
         originalBitmap?.let {
+            imageEditor.addColor(resources.getColor(R.color.defaultColorTwo))
+            imageEditor.addColor(resources.getColor(R.color.defaultColorThree))
             imageEditor.setup(originalBitmap)
         }
 

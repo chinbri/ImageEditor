@@ -11,25 +11,29 @@ import android.graphics.drawable.BitmapDrawable
 import android.view.ViewTreeObserver
 import com.libs.chindev.imageeditor.paint.PaintBuilder
 import android.graphics.Bitmap
-import android.graphics.drawable.Drawable
-import java.io.File
-import java.io.FileOutputStream
+import android.view.LayoutInflater
+import android.widget.ImageView
+
 
 class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
-
-    private var path = Path()
-    private var scaledPath = Path()
-    private var scale = 1f
-
-    private lateinit var modifiedBitmap: Bitmap
 
     companion object {
         const val STROKE_WIDTH = 15f
     }
 
-    private val colorOne = context.resources.getColor(R.color.defaultColorOne)
-    private val colorTwo = context.resources.getColor(R.color.defaultColorTwo)
-    private val colorThree = context.resources.getColor(R.color.defaultColorThree)
+    private var path = Path()
+    private var scaledPath = Path()
+    private var scale = 1f
+
+    private lateinit var paint: Paint
+    private lateinit var scaledPaint: Paint
+
+    private val colorList: MutableList<Int> = mutableListOf()
+
+    private lateinit var modifiedBitmap: Bitmap
+
+    var imageInitialized = false
+
 
     constructor(context: Context) : this(context, null){
         init()
@@ -39,21 +43,21 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
         init()
     }
 
-    var imageInitialized = false
-
     private fun init() {
         View.inflate(context, R.layout.image_editor, this)
+    }
 
-        ivColorOne.setOnClickListener {
+    fun addColor(color: Int){
 
-        }
+        colorList.add(color)
 
-        ivColorTwo.setOnClickListener {
+        val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, null) as ImageView
+        colorView.setColorFilter(color)
+        llColours.addView(colorView)
 
-        }
-
-        ivColorThree.setOnClickListener {
-
+        colorView.setOnClickListener {
+            paint.color = color
+            scaledPaint.color = color
         }
 
     }
@@ -64,14 +68,11 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
 
         var tempBitmap = originalBitmap
 
-
-        val paint = PaintBuilder()
-            .setColor(colorThree)
+        paint = PaintBuilder()
+            .setColor(resources.getColor(R.color.defaultColorOne))
             .setStrokeWidth(STROKE_WIDTH)
             .setStyle(Paint.Style.STROKE)
             .build()
-
-        var scaledPaint: Paint = paint
 
         ivMainImage.viewTreeObserver
             .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -97,7 +98,7 @@ class ImageEditor(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : C
                         scale = modifiedBitmap.width.toFloat() / newBitmapWidth
 
                         scaledPaint = PaintBuilder()
-                            .setColor(colorThree)
+                            .setColor(resources.getColor(R.color.defaultColorOne))
                             .setStrokeWidth(STROKE_WIDTH * scale)
                             .setStyle(Paint.Style.STROKE)
                             .build()
