@@ -6,6 +6,7 @@ class PaintBuilder {
 
     private var color: Int? = null
     private var stokeWidth: Float? = null
+    private var style: Paint.Style? = null
 
     fun build(): Paint {
 
@@ -19,6 +20,10 @@ class PaintBuilder {
             paint.strokeWidth = it
         }
 
+        this.style?.let {
+            paint.style = it
+        }
+
         return paint
 
     }
@@ -30,6 +35,11 @@ class PaintBuilder {
 
     fun setStrokeWidth(strokeWidth: Float): PaintBuilder{
         this.stokeWidth = strokeWidth
+        return this
+    }
+
+    fun setStyle(style: Paint.Style): PaintBuilder{
+        this.style = style
         return this
     }
 }
