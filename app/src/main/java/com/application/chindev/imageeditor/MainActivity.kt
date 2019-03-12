@@ -25,10 +25,10 @@ class MainActivity : AppCompatActivity() {
 
         originalBitmap?.let {
             imageEditor.setup(originalBitmap)
-            imageEditor.addColor(resources.getColor(R.color.defaultColorTwo))
-            imageEditor.addColor(resources.getColor(R.color.defaultColorOne))
-            imageEditor.addColor(resources.getColor(R.color.colorAccent))
-            imageEditor.strokeWidth = 5f
+//            imageEditor.addColor(resources.getColor(R.color.defaultColorTwo))
+//            imageEditor.addColor(resources.getColor(R.color.defaultColorOne))
+//            imageEditor.addColor(resources.getColor(R.color.colorAccent))
+//            imageEditor.strokeWidth = 5f
         }
 
         btnSave.setOnClickListener {

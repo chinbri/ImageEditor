@@ -15,6 +15,9 @@ import android.view.LayoutInflater
 import android.widget.ImageView
 import com.example.test.imageeditorview.R
 import kotlinx.android.synthetic.main.image_editor.view.*
+import java.io.RandomAccessFile
+import java.nio.channels.FileChannel
+
 
 class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
@@ -124,7 +127,9 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     fun setup(originalBitmap: Bitmap){
 
-        modifiedBitmap = originalBitmap.copy(originalBitmap.getConfig(), true)
+//        modifiedBitmap = originalBitmap.copy(originalBitmap.getConfig(), true)
+
+        modifiedBitmap = copyBitmapEfficiently(originalBitmap)
 
         var tempBitmap = originalBitmap
 
@@ -180,6 +185,27 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
                 }
             })
+    }
+
+    private fun copyBitmapEfficiently(originalBitmap: Bitmap): Bitmap{
+
+        val file = "${context.externalCacheDir}/tempFile"
+
+        val randomAccessFile = RandomAccessFile(file, "rw")
+
+        val channel = randomAccessFile.getChannel()
+        val map = channel.map(FileChannel.MapMode.READ_WRITE, 0, originalBitmap.width.toLong() * originalBitmap.height * 4)
+        originalBitmap.copyPixelsToBuffer(map)
+        originalBitmap.recycle()
+
+        val mutableBitmap = Bitmap.createBitmap(originalBitmap.width, originalBitmap.height, originalBitmap.config)
+        map.position(0)
+        mutableBitmap.copyPixelsFromBuffer(map)
+
+        channel.close()
+        randomAccessFile.close()
+
+        return mutableBitmap
     }
 
     private fun initializeMotionCapture(
