@@ -1,6 +1,7 @@
 package com.application.chindev.imageeditor
 
 import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.*
 import android.util.AttributeSet
 import android.view.MotionEvent
@@ -20,6 +21,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     private var path = Path()
     private var scaledPath = Path()
     private var scale = 1f
+
     var strokeWidth = 15f
         set(value) {
             paint.strokeWidth = value
@@ -51,11 +53,42 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     constructor(context: Context, attrs: AttributeSet?) : this(context, attrs, 0){
-        init()
+        init(attrs)
     }
 
-    private fun init() {
+    private fun init(attrs: AttributeSet? = null) {
         View.inflate(context, R.layout.image_editor, this)
+
+        attrs?.let {
+            setUpAttrs(it)
+        }
+    }
+
+    private fun setUpAttrs(attrs: AttributeSet) {
+        val typedArray = getTypedArrayAttrs(attrs)
+        this.strokeWidth = getStrokeWidthAttr(typedArray)
+        val colorList = getColorListAttr(typedArray)
+        colorList?.let {
+            val colorSplit = it.split(",")
+
+            for(color in colorSplit){
+                if("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$".toRegex().containsMatchIn(color)){
+                    addColor(Color.parseColor(color))
+                }
+            }
+        }
+    }
+
+    private fun getTypedArrayAttrs(attributeSet: AttributeSet): TypedArray {
+        return context.theme.obtainStyledAttributes(attributeSet, R.styleable.ImageEditorViewAttrs, 0, 0)
+    }
+
+    private fun getStrokeWidthAttr(typedArray: TypedArray): Float {
+        return typedArray.getFloat(R.styleable.ImageEditorViewAttrs_strokeWidth, 15f)
+    }
+
+    private fun getColorListAttr(typedArray: TypedArray): String? {
+        return typedArray.getString(R.styleable.ImageEditorViewAttrs_colorList)
     }
 
     fun addColor(color: Int){
@@ -188,7 +221,6 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                         originalCanvas.translate(0f, 0f)
                         originalCanvas.restore()
 
-                        //Attach the canvas to the ImageView
                         ivMainImage.setImageDrawable(BitmapDrawable(resources, tempBitmap))
                     }
 
