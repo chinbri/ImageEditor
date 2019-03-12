@@ -128,88 +128,64 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     fun setup(originalBitmap: Bitmap){
 
-        modifiedBitmap = copyBitmapEfficiently(originalBitmap)
+        CopyBitmapAsyncTask(context).execute(originalBitmap).get()?.let {
 
-        var tempBitmap = originalBitmap
+            modifiedBitmap = it
 
-        ivMainImage.viewTreeObserver
-            .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                override fun onGlobalLayout() {
-                    ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
+            var tempBitmap = originalBitmap
 
-                    if(!imageInitialized){
-                        val aspectRatioBitmap = modifiedBitmap.width.toFloat() / modifiedBitmap.height
-                        val aspectRatioImageView = ivMainImage.width / ivMainImage.height
+            ivMainImage.viewTreeObserver
+                .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                    override fun onGlobalLayout() {
+                        ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-                        val newBitmapWidth: Int
-                        val newBitmapHeight: Int
+                        if(!imageInitialized){
+                            val aspectRatioBitmap = modifiedBitmap.width.toFloat() / modifiedBitmap.height
+                            val aspectRatioImageView = ivMainImage.width / ivMainImage.height
 
-                        if(aspectRatioBitmap > aspectRatioImageView){
-                            newBitmapWidth = ivMainImage.width
-                            newBitmapHeight = (ivMainImage.width / aspectRatioBitmap).toInt()
-                        }else{
-                            newBitmapHeight = ivMainImage.height
-                            newBitmapWidth = (ivMainImage.height * aspectRatioBitmap).toInt()
+                            val newBitmapWidth: Int
+                            val newBitmapHeight: Int
+
+                            if(aspectRatioBitmap > aspectRatioImageView){
+                                newBitmapWidth = ivMainImage.width
+                                newBitmapHeight = (ivMainImage.width / aspectRatioBitmap).toInt()
+                            }else{
+                                newBitmapHeight = ivMainImage.height
+                                newBitmapWidth = (ivMainImage.height * aspectRatioBitmap).toInt()
+                            }
+
+                            tempBitmap = Bitmap.createScaledBitmap(modifiedBitmap, newBitmapWidth, newBitmapHeight, false)
+                            scale = modifiedBitmap.width.toFloat() / newBitmapWidth
+
+                            scaledPaint.strokeWidth = strokeWidth * scale
+
+                            imageInitialized = true
                         }
 
-                        tempBitmap = Bitmap.createScaledBitmap(modifiedBitmap, newBitmapWidth, newBitmapHeight, false)
-                        scale = modifiedBitmap.width.toFloat() / newBitmapWidth
+                        val tempCanvas = Canvas(tempBitmap)
+                        val originalCanvas = Canvas(modifiedBitmap)
 
-                        scaledPaint.strokeWidth = strokeWidth * scale
+                        val bitmapWidth = tempBitmap.width
+                        val bitmapHeight = tempBitmap.height
 
-                        imageInitialized = true
+                        val currentImageViewRatio =
+                            ivMainImage.width.toFloat() / ivMainImage.height
+                        val currentImageRatio = bitmapWidth.toFloat() / bitmapHeight
+
+                        val layoutParams = ivMainImage.layoutParams
+                        if (currentImageRatio > currentImageViewRatio) {
+                            layoutParams.height = (ivMainImage.width / currentImageRatio).toInt()
+                        } else {
+                            layoutParams.width = (ivMainImage.height * currentImageRatio).toInt()
+                        }
+
+                        ivMainImage.layoutParams = layoutParams
+                        ivMainImage.setImageBitmap(tempBitmap)
+
+                        initializeMotionCapture(originalCanvas, tempCanvas, tempBitmap, paint, scaledPaint)
+
                     }
-
-                    val tempCanvas = Canvas(tempBitmap)
-                    val originalCanvas = Canvas(modifiedBitmap)
-
-                    val bitmapWidth = tempBitmap.width
-                    val bitmapHeight = tempBitmap.height
-
-                    val currentImageViewRatio =
-                        ivMainImage.width.toFloat() / ivMainImage.height
-                    val currentImageRatio = bitmapWidth.toFloat() / bitmapHeight
-
-                    val layoutParams = ivMainImage.layoutParams
-                    if (currentImageRatio > currentImageViewRatio) {
-                        layoutParams.height = (ivMainImage.width / currentImageRatio).toInt()
-                    } else {
-                        layoutParams.width = (ivMainImage.height * currentImageRatio).toInt()
-                    }
-
-                    ivMainImage.layoutParams = layoutParams
-                    ivMainImage.setImageBitmap(tempBitmap)
-
-                    initializeMotionCapture(originalCanvas, tempCanvas, tempBitmap, paint, scaledPaint)
-
-                }
-            })
-    }
-
-    private fun copyBitmapEfficiently(originalBitmap: Bitmap): Bitmap{
-
-        val file = File("${context.externalCacheDir}/tempFile")
-
-        val randomAccessFile = RandomAccessFile(file, "rw")
-
-        randomAccessFile.use {
-            val channel = randomAccessFile.channel
-
-            channel.use {
-                val map = channel.map(FileChannel.MapMode.READ_WRITE, 0, originalBitmap.width.toLong() * originalBitmap.height * 4)
-
-                originalBitmap.copyPixelsToBuffer(map)
-
-                val mutableBitmap = Bitmap.createBitmap(originalBitmap.width, originalBitmap.height, originalBitmap.config)
-                map.position(0)
-                mutableBitmap.copyPixelsFromBuffer(map)
-
-                originalBitmap.recycle()
-
-                file.delete()
-
-                return mutableBitmap
-            }
+                })
         }
 
     }
