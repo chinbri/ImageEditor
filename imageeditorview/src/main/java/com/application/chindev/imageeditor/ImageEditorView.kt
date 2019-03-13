@@ -13,20 +13,21 @@ import com.application.chindev.imageeditor.paint.PaintBuilder
 import android.graphics.Bitmap
 import android.view.LayoutInflater
 import android.widget.ImageView
+import com.application.chindev.imageeditor.bitmap.BitmapUtils
+import com.application.chindev.imageeditor.bitmap.CopyBitmapAsyncTask
 import com.example.test.imageeditorview.R
 import kotlinx.android.synthetic.main.image_editor.view.*
-import java.io.File
-import java.io.RandomAccessFile
-import java.nio.channels.FileChannel
-
 
 class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
+
+    val REGEXP_HEX_COLOR = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+    val DEFAULT_STROKE_WIDTH = 15f
 
     private var path = Path()
     private var scaledPath = Path()
     private var scale = 1f
 
-    var strokeWidth = 15f
+    var strokeWidth = DEFAULT_STROKE_WIDTH
         set(value) {
             paint.strokeWidth = value
             scaledPaint.strokeWidth = value
@@ -76,7 +77,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
             val colorSplit = it.split(",")
 
             for(color in colorSplit){
-                if("^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$".toRegex().containsMatchIn(color)){
+                if(REGEXP_HEX_COLOR.toRegex().containsMatchIn(color)){
                     addColor(Color.parseColor(color))
                 }
             }
@@ -88,7 +89,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     private fun getStrokeWidthAttr(typedArray: TypedArray): Float {
-        return typedArray.getFloat(R.styleable.ImageEditorViewAttrs_strokeWidth, 15f)
+        return typedArray.getFloat(R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
     }
 
     private fun getColorListAttr(typedArray: TypedArray): String? {
@@ -99,7 +100,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
         colorList.add(color)
 
-        val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, null)
+        val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, llColours, false)
         val ivColor = colorView.findViewById<ImageView>(R.id.ivColor)
 
         ivColor.setColorFilter(color)
@@ -132,7 +133,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
             modifiedBitmap = it
 
-            var tempBitmap = originalBitmap
+            var scaledBitmap = originalBitmap
 
             ivMainImage.viewTreeObserver
                 .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
@@ -140,33 +141,21 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                         ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
                         if(!imageInitialized){
-                            val aspectRatioBitmap = modifiedBitmap.width.toFloat() / modifiedBitmap.height
-                            val aspectRatioImageView = ivMainImage.width / ivMainImage.height
 
-                            val newBitmapWidth: Int
-                            val newBitmapHeight: Int
+                            scaledBitmap = BitmapUtils.scaleBitmapToView(modifiedBitmap, ivMainImage)
 
-                            if(aspectRatioBitmap > aspectRatioImageView){
-                                newBitmapWidth = ivMainImage.width
-                                newBitmapHeight = (ivMainImage.width / aspectRatioBitmap).toInt()
-                            }else{
-                                newBitmapHeight = ivMainImage.height
-                                newBitmapWidth = (ivMainImage.height * aspectRatioBitmap).toInt()
-                            }
-
-                            tempBitmap = Bitmap.createScaledBitmap(modifiedBitmap, newBitmapWidth, newBitmapHeight, false)
-                            scale = modifiedBitmap.width.toFloat() / newBitmapWidth
+                            scale = modifiedBitmap.width.toFloat() / scaledBitmap.width
 
                             scaledPaint.strokeWidth = strokeWidth * scale
 
                             imageInitialized = true
                         }
 
-                        val tempCanvas = Canvas(tempBitmap)
+                        val tempCanvas = Canvas(scaledBitmap)
                         val originalCanvas = Canvas(modifiedBitmap)
 
-                        val bitmapWidth = tempBitmap.width
-                        val bitmapHeight = tempBitmap.height
+                        val bitmapWidth = scaledBitmap.width
+                        val bitmapHeight = scaledBitmap.height
 
                         val currentImageViewRatio =
                             ivMainImage.width.toFloat() / ivMainImage.height
@@ -180,9 +169,9 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                         }
 
                         ivMainImage.layoutParams = layoutParams
-                        ivMainImage.setImageBitmap(tempBitmap)
+                        ivMainImage.setImageBitmap(scaledBitmap)
 
-                        initializeMotionCapture(originalCanvas, tempCanvas, tempBitmap, paint, scaledPaint)
+                        initializeMotionCapture(originalCanvas, tempCanvas, scaledBitmap, paint, scaledPaint)
 
                     }
                 })

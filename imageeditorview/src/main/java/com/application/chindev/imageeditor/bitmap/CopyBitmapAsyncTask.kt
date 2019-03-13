@@ -1,4 +1,4 @@
-package com.application.chindev.imageeditor
+package com.application.chindev.imageeditor.bitmap
 
 import android.content.Context
 import android.graphics.Bitmap

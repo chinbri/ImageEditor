@@ -20,15 +20,17 @@ class MainActivity : AppCompatActivity() {
         val options = BitmapFactory.Options()
         options.inMutable = false
 
-        //var originalBitmap = drawableToBitmap(context.resources.getDrawable(R.drawable.ic_launcher_background))
         val originalBitmap = BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options)
 
         originalBitmap?.let {
+
             imageEditor.setup(originalBitmap)
-//            imageEditor.addColor(resources.getColor(R.color.defaultColorTwo))
-//            imageEditor.addColor(resources.getColor(R.color.defaultColorOne))
-//            imageEditor.addColor(resources.getColor(R.color.colorAccent))
-//            imageEditor.strokeWidth = 5f
+
+            //we can add new colors in addition to xml attributes
+            imageEditor.addColor(resources.getColor(R.color.colorPrimary))
+
+            //also we could set stroke width
+            imageEditor.strokeWidth = 12f
         }
 
         btnSave.setOnClickListener {
@@ -37,7 +39,7 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    fun saveToFile(bitmap: Bitmap){
+    private fun saveToFile(bitmap: Bitmap){
         val f = File("${externalCacheDir}/file.jpg")
 
         bitmap.compress(
