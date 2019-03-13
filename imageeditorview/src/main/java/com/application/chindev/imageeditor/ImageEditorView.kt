@@ -98,7 +98,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     fun addColor(color: String){
 
-        if(REGEXP_HEX_COLOR.toRegex().containsMatchIn(color)){
+        if(checkColorFormat(color)){
 
             val colorInt = Color.parseColor(color)
 
@@ -162,13 +162,24 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
             OrientationEnum.VERTICAL -> llColours.orientation = LinearLayout.VERTICAL
         }
 
-        if(REGEXP_HEX_COLOR.toRegex().containsMatchIn(backgroundColor)){
+        if(checkColorFormat(backgroundColor)){
             val gd = GradientDrawable()
             gd.setColor(Color.parseColor(backgroundColor))
             gd.cornerRadius = 34f
             llColours.setBackgroundDrawable(gd)
         }
 
+    }
+
+    private fun checkColorFormat(color: String): Boolean {
+
+        val rightColor = REGEXP_HEX_COLOR.toRegex().containsMatchIn(color)
+
+        if(!rightColor) {
+            println("Wrong color format: ${color}. Hex color String expected (e.g. #FF11FF")
+        }
+
+        return rightColor
     }
 
     private fun highlightColor(colorView: View) {
