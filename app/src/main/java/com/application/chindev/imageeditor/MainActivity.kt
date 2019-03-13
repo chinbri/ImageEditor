@@ -5,8 +5,8 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.FileOutputStream
@@ -27,10 +27,16 @@ class MainActivity : AppCompatActivity() {
             imageEditor.setup(originalBitmap)
 
             //we can add new colors in addition to xml attributes
-            imageEditor.addColor(resources.getColor(R.color.colorPrimary))
-
+            imageEditor.addColor("#008577")
             //also we could set stroke width
             imageEditor.strokeWidth = 12f
+
+            //configure color palette position and orientation
+            imageEditor.configureColorsPalette(
+                GravityEnum.TOP_RIGHT,
+                20,
+                "#D81B60",
+                OrientationEnum.HORIZONTAL)
         }
 
         btnSave.setOnClickListener {

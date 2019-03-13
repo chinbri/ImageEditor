@@ -3,20 +3,24 @@ package com.application.chindev.imageeditor
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.*
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.GradientDrawable
 import android.util.AttributeSet
+import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import androidx.constraintlayout.widget.ConstraintLayout
-import android.graphics.drawable.BitmapDrawable
 import android.view.ViewTreeObserver
-import com.application.chindev.imageeditor.paint.PaintBuilder
-import android.graphics.Bitmap
-import android.view.LayoutInflater
 import android.widget.ImageView
+import android.widget.LinearLayout
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.constraintlayout.widget.ConstraintSet
 import com.application.chindev.imageeditor.bitmap.BitmapUtils
 import com.application.chindev.imageeditor.bitmap.CopyBitmapAsyncTask
-import com.example.test.imageeditorview.R
+import com.application.chindev.imageeditor.paint.PaintBuilder
 import kotlinx.android.synthetic.main.image_editor.view.*
+
+
+
 
 class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
@@ -62,7 +66,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     private fun init(attrs: AttributeSet? = null) {
-        View.inflate(context, R.layout.image_editor, this)
+        View.inflate(context, com.example.test.imageeditorview.R.layout.image_editor, this)
 
         attrs?.let {
             setUpAttrs(it)
@@ -74,57 +78,108 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         this.strokeWidth = getStrokeWidthAttr(typedArray)
         val colorList = getColorListAttr(typedArray)
         colorList?.let {
-            val colorSplit = it.split(",")
-
-            for(color in colorSplit){
-                if(REGEXP_HEX_COLOR.toRegex().containsMatchIn(color)){
-                    addColor(Color.parseColor(color))
-                }
+            it.split(",").forEach {
+                addColor(it)
             }
         }
     }
 
     private fun getTypedArrayAttrs(attributeSet: AttributeSet): TypedArray {
-        return context.theme.obtainStyledAttributes(attributeSet, R.styleable.ImageEditorViewAttrs, 0, 0)
+        return context.theme.obtainStyledAttributes(attributeSet, com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs, 0, 0)
     }
 
     private fun getStrokeWidthAttr(typedArray: TypedArray): Float {
-        return typedArray.getFloat(R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
+        return typedArray.getFloat(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
     }
 
     private fun getColorListAttr(typedArray: TypedArray): String? {
-        return typedArray.getString(R.styleable.ImageEditorViewAttrs_colorList)
+        return typedArray.getString(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_colorList)
     }
 
-    fun addColor(color: Int){
+    fun addColor(color: String){
 
-        colorList.add(color)
+        if(REGEXP_HEX_COLOR.toRegex().containsMatchIn(color)){
 
-        val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, llColours, false)
-        val ivColor = colorView.findViewById<ImageView>(R.id.ivColor)
+            val colorInt = Color.parseColor(color)
 
-        ivColor.setColorFilter(color)
+            colorList.add(colorInt)
 
-        llColours.addView(colorView)
+            val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(com.example.test.imageeditorview.R.layout.color_palette, llColours, false)
 
-        colorView.setOnClickListener {
-            paint.color = color
-            scaledPaint.color = color
-            highlightColor(it)
+            val ivColor = colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivColor)
+
+            ivColor.setColorFilter(colorInt)
+
+            llColours.addView(colorView)
+
+            colorView.setOnClickListener {
+                paint.color = colorInt
+                scaledPaint.color = colorInt
+                highlightColor(it)
+            }
+
         }
 
     }
 
+    fun configureColorsPalette(
+        gravity: GravityEnum = GravityEnum.TOP_LEFT,
+        margin: Int = 0,
+        backgroundColor: String = "#FFFFFF",
+        orientation: OrientationEnum = OrientationEnum.VERTICAL){
+
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(clMain)
+
+        constraintSet.clear(llColours.id, ConstraintSet.TOP)
+        constraintSet.clear(llColours.id, ConstraintSet.BOTTOM)
+        constraintSet.clear(llColours.id, ConstraintSet.END)
+        constraintSet.clear(llColours.id, ConstraintSet.START)
+
+        when(gravity){
+            GravityEnum.BOTTOM_LEFT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
+                constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
+            }
+            GravityEnum.TOP_LEFT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
+                constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
+            }
+            GravityEnum.BOTTOM_RIGHT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
+                constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
+            }
+            GravityEnum.TOP_RIGHT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
+                constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
+            }
+        }
+
+        constraintSet.applyTo(clMain)
+
+        when(orientation){
+            OrientationEnum.HORIZONTAL -> llColours.orientation = LinearLayout.HORIZONTAL
+            OrientationEnum.VERTICAL -> llColours.orientation = LinearLayout.VERTICAL
+        }
+
+        if(REGEXP_HEX_COLOR.toRegex().containsMatchIn(backgroundColor)){
+            val gd = GradientDrawable()
+            gd.setColor(Color.parseColor(backgroundColor))
+            gd.cornerRadius = 34f
+            llColours.setBackgroundDrawable(gd)
+        }
+
+    }
 
     private fun highlightColor(colorView: View) {
         if (llColours.childCount > 0) {
             for (i in 0 until llColours.childCount) {
                 val child = llColours.getChildAt(i)
-                val ivHighlight = child.findViewById<ImageView>(R.id.ivHighlight)
+                val ivHighlight = child.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight)
                 ivHighlight.visibility = View.INVISIBLE
             }
         }
-        colorView.findViewById<ImageView>(R.id.ivHighlight).visibility = View.VISIBLE
+        colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight).visibility = View.VISIBLE
     }
 
     fun setup(originalBitmap: Bitmap){
