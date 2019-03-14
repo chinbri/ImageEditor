@@ -52,7 +52,11 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     private val colorList: MutableList<Int> = mutableListOf()
 
+    private lateinit var originalBitmap: Bitmap
+
     private lateinit var modifiedBitmap: Bitmap
+
+    private lateinit var scaledBitmap: Bitmap
 
     var imageInitialized = false
 
@@ -195,54 +199,59 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     fun setup(originalBitmap: Bitmap){
 
+        this.originalBitmap = originalBitmap
+
         CopyBitmapAsyncTask(context).execute(originalBitmap).get()?.let {
 
             modifiedBitmap = it
-
-            var scaledBitmap = originalBitmap
 
             ivMainImage.viewTreeObserver
                 .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
                     override fun onGlobalLayout() {
                         ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
 
-                        if(!imageInitialized){
-
-                            scaledBitmap = BitmapUtils.scaleBitmapToView(modifiedBitmap, ivMainImage)
-
-                            scale = modifiedBitmap.width.toFloat() / scaledBitmap.width
-
-                            scaledPaint.strokeWidth = strokeWidth * scale
-
-                            imageInitialized = true
-                        }
-
-                        val tempCanvas = Canvas(scaledBitmap)
-                        val originalCanvas = Canvas(modifiedBitmap)
-
-                        val bitmapWidth = scaledBitmap.width
-                        val bitmapHeight = scaledBitmap.height
-
-                        val currentImageViewRatio =
-                            ivMainImage.width.toFloat() / ivMainImage.height
-                        val currentImageRatio = bitmapWidth.toFloat() / bitmapHeight
-
-                        val layoutParams = ivMainImage.layoutParams
-                        if (currentImageRatio > currentImageViewRatio) {
-                            layoutParams.height = (ivMainImage.width / currentImageRatio).toInt()
-                        } else {
-                            layoutParams.width = (ivMainImage.height * currentImageRatio).toInt()
-                        }
-
-                        ivMainImage.layoutParams = layoutParams
-                        ivMainImage.setImageBitmap(scaledBitmap)
-
-                        initializeMotionCapture(originalCanvas, tempCanvas, scaledBitmap, paint, scaledPaint)
+                        setupImage()
 
                     }
                 })
         }
 
+    }
+
+    private fun setupImage() {
+
+        if (!imageInitialized) {
+
+            scaledBitmap = BitmapUtils.scaleBitmapToView(modifiedBitmap, ivMainImage)
+
+            scale = modifiedBitmap.width.toFloat() / scaledBitmap.width
+
+            scaledPaint.strokeWidth = strokeWidth * scale
+
+            imageInitialized = true
+        }
+
+        val tempCanvas = Canvas(scaledBitmap)
+        val originalCanvas = Canvas(modifiedBitmap)
+
+        val bitmapWidth = scaledBitmap.width
+        val bitmapHeight = scaledBitmap.height
+
+        val currentImageViewRatio =
+            ivMainImage.width.toFloat() / ivMainImage.height
+        val currentImageRatio = bitmapWidth.toFloat() / bitmapHeight
+
+        val layoutParams = ivMainImage.layoutParams
+        if (currentImageRatio > currentImageViewRatio) {
+            layoutParams.height = (ivMainImage.width / currentImageRatio).toInt()
+        } else {
+            layoutParams.width = (ivMainImage.height * currentImageRatio).toInt()
+        }
+
+        ivMainImage.layoutParams = layoutParams
+        ivMainImage.setImageBitmap(scaledBitmap)
+
+        initializeMotionCapture(originalCanvas, tempCanvas, scaledBitmap, paint, scaledPaint)
     }
 
     private fun initializeMotionCapture(
@@ -297,5 +306,13 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     fun obtainBitmap(): Bitmap = modifiedBitmap
+
+    fun erase(originalBitmap: Bitmap){
+        imageInitialized = false
+        CopyBitmapAsyncTask(context).execute(originalBitmap).get()?.let {
+            modifiedBitmap = it
+            setupImage()
+        }
+    }
 
 }

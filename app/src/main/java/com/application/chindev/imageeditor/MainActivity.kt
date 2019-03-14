@@ -43,6 +43,10 @@ class MainActivity : AppCompatActivity() {
             saveToFile(imageEditor.obtainBitmap())
         }
 
+        btnErase.setOnClickListener {
+            imageEditor.erase( BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options))
+        }
+
     }
 
     private fun saveToFile(bitmap: Bitmap){

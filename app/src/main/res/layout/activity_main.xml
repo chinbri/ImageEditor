@@ -27,4 +27,13 @@
             app:layout_constraintBottom_toBottomOf="parent" android:layout_marginEnd="8dp"
             android:layout_marginBottom="8dp"/>
 
+    <Button
+            android:id="@+id/btnErase"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/erase"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent" android:layout_marginEnd="8dp"
+            android:layout_marginBottom="8dp"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
