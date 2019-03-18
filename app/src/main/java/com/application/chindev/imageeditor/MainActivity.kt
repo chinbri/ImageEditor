@@ -37,6 +37,8 @@ class MainActivity : AppCompatActivity() {
                 20,
                 "#D81B60",
                 OrientationEnum.HORIZONTAL)
+
+            imageEditor.setCurrentColor("#FF6F00")
         }
 
         btnSave.setOnClickListener {

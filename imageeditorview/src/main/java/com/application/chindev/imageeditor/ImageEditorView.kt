@@ -100,6 +100,17 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         return typedArray.getString(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_colorList)
     }
 
+    fun setCurrentColor(color: String){
+
+        if(checkColorFormat(color)){
+            val colorInt = Color.parseColor(color)
+
+            paint.color = colorInt
+            scaledPaint.color = colorInt
+        }
+
+    }
+
     fun addColor(color: String){
 
         if(checkColorFormat(color)){
@@ -180,7 +191,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         val rightColor = REGEXP_HEX_COLOR.toRegex().containsMatchIn(color)
 
         if(!rightColor) {
-            println("Wrong color format: ${color}. Hex color String expected (e.g. #FF11FF")
+            println("Wrong color format: $color. Hex color String expected (e.g. #FF11FF")
         }
 
         return rightColor
