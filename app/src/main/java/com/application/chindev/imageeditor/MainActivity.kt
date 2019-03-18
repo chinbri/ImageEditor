@@ -24,8 +24,8 @@ class MainActivity : AppCompatActivity() {
 
         originalBitmap?.let {
 
-            //we can setup source image as an attribute in the layout, or we can add a bitmap
-            imageEditor.setup(originalBitmap)
+            //we can setBitmap source image as an attribute in the layout, or we can add a bitmap
+            imageEditor.setBitmap(originalBitmap)
 
             //we can add new colors in addition to xml attributes
             imageEditor.addColor("#008577")

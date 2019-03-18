@@ -24,8 +24,10 @@ import kotlinx.android.synthetic.main.image_editor.view.*
 
 class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int) : ConstraintLayout(context, attrs, defStyleAttr) {
 
-    val REGEXP_HEX_COLOR = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
-    val DEFAULT_STROKE_WIDTH = 15f
+    companion object {
+        const val REGEXP_HEX_COLOR = "^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$"
+        const val DEFAULT_STROKE_WIDTH = 15f
+    }
 
     private var path = Path()
     private var scaledPath = Path()
@@ -90,7 +92,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         val source = getSourceAttr(typedArray)
 
         if(source > 0){
-            setup(BitmapUtils.drawableToBitmap(context, source))
+            setBitmap(BitmapFactory.decodeResource(context.resources, source))
         }
 
     }
@@ -219,7 +221,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight).visibility = View.VISIBLE
     }
 
-    fun setup(originalBitmap: Bitmap){
+    fun setBitmap(originalBitmap: Bitmap){
 
         this.originalBitmap = originalBitmap
 
