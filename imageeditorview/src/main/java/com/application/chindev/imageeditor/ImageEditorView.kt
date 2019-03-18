@@ -90,7 +90,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         val source = getSourceAttr(typedArray)
 
         if(source > 0){
-            setup(drawableToBitmap(source))
+            setup(BitmapUtils.drawableToBitmap(context, source))
         }
 
     }
@@ -110,22 +110,6 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     private fun getSourceAttr(typedArray: TypedArray) =
         typedArray.getResourceId(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_source, -1)
 
-
-    fun drawableToBitmap(resourceId: Int): Bitmap {
-
-        val drawable = context.resources.getDrawable(resourceId)
-
-        if (drawable is BitmapDrawable) {
-            return drawable.bitmap
-        }
-
-        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
-        val canvas = Canvas(bitmap)
-        drawable.setBounds(0, 0, canvas.width, canvas.height)
-        drawable.draw(canvas)
-
-        return bitmap
-    }
 
     fun setCurrentColor(color: String){
 
