@@ -24,13 +24,14 @@ class MainActivity : AppCompatActivity() {
 
         originalBitmap?.let {
 
-            //we can setBitmap source image as an attribute in the layout, or we can add a bitmap
-            imageEditor.setBitmap(originalBitmap)
+            //we can set source image as an attribute in the layout, or we can set a bitmap
+            imageEditor.bitmap = originalBitmap
+
+            //also we could change stroke width
+            imageEditor.strokeWidth = 12f
 
             //we can add new colors in addition to xml attributes
             imageEditor.addColor("#008577")
-            //also we could set stroke width
-            imageEditor.strokeWidth = 12f
 
             //configure color palette position and orientation
             imageEditor.configureColorsPalette(

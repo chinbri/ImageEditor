@@ -29,16 +29,38 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         const val DEFAULT_STROKE_WIDTH = 15f
     }
 
-    private var path = Path()
-    private var scaledPath = Path()
-    private var scale = 1f
-
     var strokeWidth = DEFAULT_STROKE_WIDTH
         set(value) {
             paint.strokeWidth = value
             scaledPaint.strokeWidth = value
             field = value
         }
+
+    var bitmap: Bitmap? = null
+        set(value) {
+            field = value
+
+            CopyBitmapAsyncTask(context).execute(bitmap).get()?.let {
+
+                mutableBitmap = it
+
+                ivMainImage.viewTreeObserver
+                    .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
+                        override fun onGlobalLayout() {
+                            ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
+
+                            setupImage()
+
+                        }
+                    })
+            }
+        }
+
+    private var path = Path()
+
+    private var scaledPath = Path()
+
+    private var scale = 1f
 
     private var paint: Paint = PaintBuilder()
         .setColor(resources.getColor(android.R.color.transparent))
@@ -54,13 +76,11 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     private val colorList: MutableList<Int> = mutableListOf()
 
-    private lateinit var originalBitmap: Bitmap
-
-    private lateinit var modifiedBitmap: Bitmap
+    private lateinit var mutableBitmap: Bitmap
 
     private lateinit var scaledBitmap: Bitmap
 
-    var imageInitialized = false
+    private var imageInitialized = false
 
 
     constructor(context: Context) : this(context, null){
@@ -92,7 +112,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         val source = getSourceAttr(typedArray)
 
         if(source > 0){
-            setBitmap(BitmapFactory.decodeResource(context.resources, source))
+            bitmap = BitmapFactory.decodeResource(context.resources, source)
         }
 
     }
@@ -221,34 +241,13 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight).visibility = View.VISIBLE
     }
 
-    fun setBitmap(originalBitmap: Bitmap){
-
-        this.originalBitmap = originalBitmap
-
-        CopyBitmapAsyncTask(context).execute(originalBitmap).get()?.let {
-
-            modifiedBitmap = it
-
-            ivMainImage.viewTreeObserver
-                .addOnGlobalLayoutListener(object : ViewTreeObserver.OnGlobalLayoutListener {
-                    override fun onGlobalLayout() {
-                        ivMainImage.viewTreeObserver.removeOnGlobalLayoutListener(this)
-
-                        setupImage()
-
-                    }
-                })
-        }
-
-    }
-
     private fun setupImage() {
 
         if (!imageInitialized) {
 
-            scaledBitmap = BitmapUtils.scaleBitmapToView(modifiedBitmap, ivMainImage)
+            scaledBitmap = BitmapUtils.scaleBitmapToView(mutableBitmap, ivMainImage)
 
-            scale = modifiedBitmap.width.toFloat() / scaledBitmap.width
+            scale = mutableBitmap.width.toFloat() / scaledBitmap.width
 
             scaledPaint.strokeWidth = strokeWidth * scale
 
@@ -256,7 +255,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         }
 
         val tempCanvas = Canvas(scaledBitmap)
-        val originalCanvas = Canvas(modifiedBitmap)
+        val originalCanvas = Canvas(mutableBitmap)
 
         val bitmapWidth = scaledBitmap.width
         val bitmapHeight = scaledBitmap.height
@@ -329,12 +328,12 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         })
     }
 
-    fun obtainBitmap(): Bitmap = modifiedBitmap
+    fun obtainBitmap(): Bitmap = mutableBitmap
 
     fun erase(originalBitmap: Bitmap){
         imageInitialized = false
         CopyBitmapAsyncTask(context).execute(originalBitmap).get()?.let {
-            modifiedBitmap = it
+            mutableBitmap = it
             setupImage()
         }
     }
