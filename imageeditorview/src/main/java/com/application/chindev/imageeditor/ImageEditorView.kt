@@ -86,18 +86,45 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                 addColor(it)
             }
         }
+
+        val source = getSourceAttr(typedArray)
+
+        if(source > 0){
+            setup(drawableToBitmap(source))
+        }
+
     }
 
     private fun getTypedArrayAttrs(attributeSet: AttributeSet): TypedArray {
         return context.theme.obtainStyledAttributes(attributeSet, com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs, 0, 0)
     }
 
-    private fun getStrokeWidthAttr(typedArray: TypedArray): Float {
-        return typedArray.getFloat(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
-    }
+    private fun getStrokeWidthAttr(typedArray: TypedArray) =
+        typedArray.getFloat(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
 
-    private fun getColorListAttr(typedArray: TypedArray): String? {
-        return typedArray.getString(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_colorList)
+
+    private fun getColorListAttr(typedArray: TypedArray) =
+        typedArray.getString(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_colorList)
+
+
+    private fun getSourceAttr(typedArray: TypedArray) =
+        typedArray.getResourceId(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_source, -1)
+
+
+    fun drawableToBitmap(resourceId: Int): Bitmap {
+
+        val drawable = context.resources.getDrawable(resourceId)
+
+        if (drawable is BitmapDrawable) {
+            return drawable.bitmap
+        }
+
+        val bitmap = Bitmap.createBitmap(drawable.intrinsicWidth, drawable.intrinsicHeight, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        drawable.setBounds(0, 0, canvas.width, canvas.height)
+        drawable.draw(canvas)
+
+        return bitmap
     }
 
     fun setCurrentColor(color: String){
