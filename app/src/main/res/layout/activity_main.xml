@@ -17,6 +17,8 @@
             app:layout_constraintTop_toTopOf="parent"
             app:strokeWidth="20"
             app:colorList="#9933ff,#666666,#1B76D8"
+            app:currentColor="@color/highlightColor"
+            app:showColorPalette="false"
             app:source="@drawable/drone"/>
 
     <Button

@@ -31,15 +31,17 @@ class MainActivity : AppCompatActivity() {
             imageEditor.strokeWidth = 12f
 
             //we can add new colors in addition to xml attributes
-            imageEditor.addColor("#008577")
+            imageEditor.addColorToPalette("#008577")
 
             //configure color palette position and orientation
             imageEditor.configureColorsPalette(
+                true,
                 GravityEnum.TOP_RIGHT,
                 20,
                 "#D81B60",
                 OrientationEnum.HORIZONTAL)
 
+            //change current color
             imageEditor.setCurrentColor("#FF6F00")
         }
 

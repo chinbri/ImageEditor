@@ -1,6 +1,7 @@
 package com.application.chindev.imageeditor
 
 import android.content.Context
+import android.content.res.Resources
 import android.content.res.TypedArray
 import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
@@ -105,14 +106,27 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         val colorList = getColorListAttr(typedArray)
         colorList?.let {
             it.split(",").forEach {
-                addColor(it)
+                addColorToPalette(it)
             }
         }
 
-        val source = getSourceAttr(typedArray)
+        val currentColor = getCurrentColorAttr(typedArray)
+        if(currentColor > 0){
+            try{
+                changeCurrentColor(context.resources.getColor(currentColor))
+            }catch (e: Resources.NotFoundException){
+                println("Wrong color id")
+            }
 
+        }
+
+        val source = getSourceAttr(typedArray)
         if(source > 0){
             bitmap = BitmapFactory.decodeResource(context.resources, source)
+        }
+
+        if(!getShowColorPaletteAttr(typedArray)){
+            llColours.visibility = View.GONE
         }
 
     }
@@ -128,23 +142,25 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     private fun getColorListAttr(typedArray: TypedArray) =
         typedArray.getString(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_colorList)
 
+    private fun getCurrentColorAttr(typedArray: TypedArray) =
+        typedArray.getResourceId(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_currentColor, -1)
 
     private fun getSourceAttr(typedArray: TypedArray) =
         typedArray.getResourceId(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_source, -1)
+
+    private fun getShowColorPaletteAttr(typedArray: TypedArray) =
+        typedArray.getBoolean(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_showColorPalette, true)
 
 
     fun setCurrentColor(color: String){
 
         if(checkColorFormat(color)){
-            val colorInt = Color.parseColor(color)
-
-            paint.color = colorInt
-            scaledPaint.color = colorInt
+            changeCurrentColor(Color.parseColor(color))
         }
 
     }
 
-    fun addColor(color: String){
+    fun addColorToPalette(color: String){
 
         if(checkColorFormat(color)){
 
@@ -161,8 +177,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
             llColours.addView(colorView)
 
             colorView.setOnClickListener {
-                paint.color = colorInt
-                scaledPaint.color = colorInt
+                changeCurrentColor(colorInt)
                 highlightColor(it)
             }
 
@@ -170,51 +185,66 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     }
 
+    private fun changeCurrentColor(color: Int) {
+        paint.color = color
+        scaledPaint.color = color
+    }
+
     fun configureColorsPalette(
+        visible: Boolean = true,
         gravity: GravityEnum = GravityEnum.TOP_LEFT,
         margin: Int = 0,
         backgroundColor: String = "#FFFFFF",
         orientation: OrientationEnum = OrientationEnum.VERTICAL){
 
-        val constraintSet = ConstraintSet()
-        constraintSet.clone(clMain)
+        if(!visible){
 
-        constraintSet.clear(llColours.id, ConstraintSet.TOP)
-        constraintSet.clear(llColours.id, ConstraintSet.BOTTOM)
-        constraintSet.clear(llColours.id, ConstraintSet.END)
-        constraintSet.clear(llColours.id, ConstraintSet.START)
+            llColours.visibility = View.GONE
 
-        when(gravity){
-            GravityEnum.BOTTOM_LEFT -> {
-                constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
-                constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
+        }else{
+
+            llColours.visibility = View.VISIBLE
+
+            val constraintSet = ConstraintSet()
+            constraintSet.clone(clMain)
+
+            constraintSet.clear(llColours.id, ConstraintSet.TOP)
+            constraintSet.clear(llColours.id, ConstraintSet.BOTTOM)
+            constraintSet.clear(llColours.id, ConstraintSet.END)
+            constraintSet.clear(llColours.id, ConstraintSet.START)
+
+            when(gravity){
+                GravityEnum.BOTTOM_LEFT -> {
+                    constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
+                    constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
+                }
+                GravityEnum.TOP_LEFT -> {
+                    constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
+                    constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
+                }
+                GravityEnum.BOTTOM_RIGHT -> {
+                    constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
+                    constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
+                }
+                GravityEnum.TOP_RIGHT -> {
+                    constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
+                    constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
+                }
             }
-            GravityEnum.TOP_LEFT -> {
-                constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
-                constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
-            }
-            GravityEnum.BOTTOM_RIGHT -> {
-                constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
-                constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
-            }
-            GravityEnum.TOP_RIGHT -> {
-                constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
-                constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
-            }
-        }
 
-        constraintSet.applyTo(clMain)
+            constraintSet.applyTo(clMain)
 
-        when(orientation){
-            OrientationEnum.HORIZONTAL -> llColours.orientation = LinearLayout.HORIZONTAL
-            OrientationEnum.VERTICAL -> llColours.orientation = LinearLayout.VERTICAL
-        }
+            when(orientation){
+                OrientationEnum.HORIZONTAL -> llColours.orientation = LinearLayout.HORIZONTAL
+                OrientationEnum.VERTICAL -> llColours.orientation = LinearLayout.VERTICAL
+            }
 
-        if(checkColorFormat(backgroundColor)){
-            val gd = GradientDrawable()
-            gd.setColor(Color.parseColor(backgroundColor))
-            gd.cornerRadius = 34f
-            llColours.setBackgroundDrawable(gd)
+            if(checkColorFormat(backgroundColor)){
+                val gd = GradientDrawable()
+                gd.setColor(Color.parseColor(backgroundColor))
+                gd.cornerRadius = 34f
+                llColours.setBackgroundDrawable(gd)
+            }
         }
 
     }

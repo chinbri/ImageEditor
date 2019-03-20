@@ -3,6 +3,8 @@
     <declare-styleable name="ImageEditorViewAttrs">
         <attr name="strokeWidth" format="float"/>
         <attr name="colorList" format="string"/>
+        <attr name="currentColor" format="reference"/>
         <attr name="source" format="reference"/>
+        <attr name="showColorPalette" format="boolean"/>
     </declare-styleable>
 </resources>
