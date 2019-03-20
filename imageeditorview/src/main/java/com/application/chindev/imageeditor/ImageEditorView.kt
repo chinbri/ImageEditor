@@ -18,6 +18,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import com.application.chindev.imageeditor.bitmap.BitmapUtils
 import com.application.chindev.imageeditor.bitmap.CopyBitmapAsyncTask
 import com.application.chindev.imageeditor.paint.PaintBuilder
+import com.example.test.imageeditorview.R
 import kotlinx.android.synthetic.main.image_editor.view.*
 
 
@@ -76,6 +77,8 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         .build()
 
     private val colorList: MutableList<Int> = mutableListOf()
+
+    private var highlightColor = context.resources.getColor(R.color.defaultHighlightColor)
 
     private lateinit var mutableBitmap: Bitmap
 
@@ -195,7 +198,8 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         gravity: GravityEnum = GravityEnum.TOP_LEFT,
         margin: Int = 0,
         backgroundColor: String = "#FFFFFF",
-        orientation: OrientationEnum = OrientationEnum.VERTICAL){
+        orientation: OrientationEnum = OrientationEnum.VERTICAL,
+        highlightColor: String = ""){
 
         if(!visible){
 
@@ -245,6 +249,13 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                 gd.cornerRadius = 34f
                 llColours.setBackgroundDrawable(gd)
             }
+
+            if (checkColorFormat(highlightColor)){
+                this.highlightColor = Color.parseColor(highlightColor)
+            }else{
+                this.highlightColor = context.resources.getColor(R.color.defaultHighlightColor)
+            }
+
         }
 
     }
@@ -268,7 +279,10 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                 ivHighlight.visibility = View.INVISIBLE
             }
         }
-        colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight).visibility = View.VISIBLE
+        val ivHighlight = colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight)
+        ivHighlight.visibility = View.VISIBLE
+        ivHighlight.setColorFilter(highlightColor)
+
     }
 
     private fun setupImage() {
