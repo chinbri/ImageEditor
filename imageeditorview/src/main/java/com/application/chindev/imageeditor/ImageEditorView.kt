@@ -64,12 +64,14 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     private var scale = 1f
 
+    @Suppress("DEPRECATION")
     private var paint: Paint = PaintBuilder()
         .setColor(resources.getColor(android.R.color.transparent))
         .setStrokeWidth(strokeWidth)
         .setStyle(Paint.Style.STROKE)
         .build()
 
+    @Suppress("DEPRECATION")
     private var scaledPaint: Paint = PaintBuilder()
         .setColor(resources.getColor(android.R.color.transparent))
         .setStrokeWidth(strokeWidth)
@@ -78,6 +80,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
     private val colorList: MutableList<Int> = mutableListOf()
 
+    @Suppress("DEPRECATION")
     private var highlightColor = context.resources.getColor(R.color.defaultHighlightColor)
 
     private lateinit var mutableBitmap: Bitmap
@@ -108,14 +111,15 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         this.strokeWidth = getStrokeWidthAttr(typedArray)
         val colorList = getColorListAttr(typedArray)
         colorList?.let {
-            it.split(",").forEach {
-                addColorToPalette(it)
+            it.split(",").forEach { color ->
+                addColorToPalette(color)
             }
         }
 
         val currentColor = getCurrentColorAttr(typedArray)
         if(currentColor > 0){
             try{
+                @Suppress("DEPRECATION")
                 changeCurrentColor(context.resources.getColor(currentColor))
             }catch (e: Resources.NotFoundException){
                 println("Wrong color id")
@@ -247,12 +251,13 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
                 val gd = GradientDrawable()
                 gd.setColor(Color.parseColor(backgroundColor))
                 gd.cornerRadius = 34f
-                llColours.setBackgroundDrawable(gd)
+                llColours.background = gd
             }
 
             if (checkColorFormat(highlightColor)){
                 this.highlightColor = Color.parseColor(highlightColor)
             }else{
+                @Suppress("DEPRECATION")
                 this.highlightColor = context.resources.getColor(R.color.defaultHighlightColor)
             }
 
