@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
         val options = BitmapFactory.Options()
         options.inMutable = false
 
-        val originalBitmap = BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options)
+        val originalBitmap = BitmapFactory.decodeStream(assets.open("cat-4260536_1920.jpg"), null, options)
 
         originalBitmap?.let {
 
@@ -48,13 +48,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         btnErase.setOnClickListener {
-            imageEditor.erase( BitmapFactory.decodeStream(assets.open("wheel.jpg"), null, options))
+            BitmapFactory.decodeStream(assets.open("cat-4260536_1920.jpg"), null, options)?.let {
+                imageEditor.erase( it )
+            }
         }
 
     }
 
     private fun saveToFile(bitmap: Bitmap){
-        val f = File("${externalCacheDir}/file.jpg")
+        val f = File("$externalCacheDir/file.jpg")
 
         bitmap.compress(
             Bitmap.CompressFormat.JPEG,
