@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
+import com.application.chindev.imageeditor.palette.PaletteConfiguration
 import kotlinx.android.synthetic.main.activity_main.*
 import java.io.File
 import java.io.FileOutputStream
@@ -32,13 +33,15 @@ class MainActivity : AppCompatActivity() {
 
             //configure color palette position and orientation
             imageEditor.configureColorsPalette(
-                true,
-                GravityEnum.TOP_RIGHT,
-                20,
-                "#D81B60",
-                OrientationEnum.HORIZONTAL,
-                "#FF6F00")
-
+                PaletteConfiguration(
+                    true,
+                    GravityEnum.TOP_RIGHT,
+                    20,
+                    "#D81B60",
+                    OrientationEnum.HORIZONTAL,
+                    "#FF6F00"
+                )
+            )
             //change current color
             imageEditor.setCurrentColor("#FF85B1")
         }

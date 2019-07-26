@@ -18,6 +18,7 @@ import androidx.constraintlayout.widget.ConstraintSet
 import com.application.chindev.imageeditor.bitmap.BitmapUtils
 import com.application.chindev.imageeditor.bitmap.CopyBitmapAsyncTask
 import com.application.chindev.imageeditor.paint.PaintBuilder
+import com.application.chindev.imageeditor.palette.PaletteConfiguration
 import com.example.test.imageeditorview.R
 import kotlinx.android.synthetic.main.image_editor.view.*
 
@@ -99,7 +100,7 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     private fun init(attrs: AttributeSet? = null) {
-        View.inflate(context, com.example.test.imageeditorview.R.layout.image_editor, this)
+        View.inflate(context, R.layout.image_editor, this)
 
         attrs?.let {
             setUpAttrs(it)
@@ -139,24 +140,24 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
     }
 
     private fun getTypedArrayAttrs(attributeSet: AttributeSet): TypedArray {
-        return context.theme.obtainStyledAttributes(attributeSet, com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs, 0, 0)
+        return context.theme.obtainStyledAttributes(attributeSet, R.styleable.ImageEditorViewAttrs, 0, 0)
     }
 
     private fun getStrokeWidthAttr(typedArray: TypedArray) =
-        typedArray.getFloat(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
+        typedArray.getFloat(R.styleable.ImageEditorViewAttrs_strokeWidth, DEFAULT_STROKE_WIDTH)
 
 
     private fun getColorListAttr(typedArray: TypedArray) =
-        typedArray.getString(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_colorList)
+        typedArray.getString(R.styleable.ImageEditorViewAttrs_colorList)
 
     private fun getCurrentColorAttr(typedArray: TypedArray) =
-        typedArray.getResourceId(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_currentColor, -1)
+        typedArray.getResourceId(R.styleable.ImageEditorViewAttrs_currentColor, -1)
 
     private fun getSourceAttr(typedArray: TypedArray) =
-        typedArray.getResourceId(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_source, -1)
+        typedArray.getResourceId(R.styleable.ImageEditorViewAttrs_source, -1)
 
     private fun getShowColorPaletteAttr(typedArray: TypedArray) =
-        typedArray.getBoolean(com.example.test.imageeditorview.R.styleable.ImageEditorViewAttrs_showColorPalette, true)
+        typedArray.getBoolean(R.styleable.ImageEditorViewAttrs_showColorPalette, true)
 
 
     fun setCurrentColor(color: String){
@@ -175,9 +176,9 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
             colorList.add(colorInt)
 
-            val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(com.example.test.imageeditorview.R.layout.color_palette, llColours, false)
+            val colorView = (context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater).inflate(R.layout.color_palette, llColours, false)
 
-            val ivColor = colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivColor)
+            val ivColor = colorView.findViewById<ImageView>(R.id.ivColor)
 
             ivColor.setColorFilter(colorInt)
 
@@ -197,15 +198,9 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         scaledPaint.color = color
     }
 
-    fun configureColorsPalette(
-        visible: Boolean = true,
-        gravity: GravityEnum = GravityEnum.TOP_LEFT,
-        margin: Int = 0,
-        backgroundColor: String = "#FFFFFF",
-        orientation: OrientationEnum = OrientationEnum.VERTICAL,
-        highlightColor: String = ""){
+    fun configureColorsPalette(configuration: PaletteConfiguration){
 
-        if(!visible){
+        if(!configuration.visible){
 
             llColours.visibility = View.GONE
 
@@ -213,56 +208,72 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
 
             llColours.visibility = View.VISIBLE
 
-            val constraintSet = ConstraintSet()
-            constraintSet.clone(clMain)
+            setupPalettePosition(configuration)
 
-            constraintSet.clear(llColours.id, ConstraintSet.TOP)
-            constraintSet.clear(llColours.id, ConstraintSet.BOTTOM)
-            constraintSet.clear(llColours.id, ConstraintSet.END)
-            constraintSet.clear(llColours.id, ConstraintSet.START)
+            setupPaletteOrientation(configuration)
 
-            when(gravity){
-                GravityEnum.BOTTOM_LEFT -> {
-                    constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
-                    constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
-                }
-                GravityEnum.TOP_LEFT -> {
-                    constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, margin)
-                    constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
-                }
-                GravityEnum.BOTTOM_RIGHT -> {
-                    constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
-                    constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, margin)
-                }
-                GravityEnum.TOP_RIGHT -> {
-                    constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, margin)
-                    constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, margin)
-                }
-            }
+            setupPaletteBackgroundColor(configuration)
 
-            constraintSet.applyTo(clMain)
-
-            when(orientation){
-                OrientationEnum.HORIZONTAL -> llColours.orientation = LinearLayout.HORIZONTAL
-                OrientationEnum.VERTICAL -> llColours.orientation = LinearLayout.VERTICAL
-            }
-
-            if(checkColorFormat(backgroundColor)){
-                val gd = GradientDrawable()
-                gd.setColor(Color.parseColor(backgroundColor))
-                gd.cornerRadius = 34f
-                llColours.background = gd
-            }
-
-            if (checkColorFormat(highlightColor)){
-                this.highlightColor = Color.parseColor(highlightColor)
-            }else{
-                @Suppress("DEPRECATION")
-                this.highlightColor = context.resources.getColor(R.color.defaultHighlightColor)
-            }
+            setupHighlightColor(configuration)
 
         }
 
+    }
+
+    private fun setupPalettePosition(configuration: PaletteConfiguration) {
+        val constraintSet = ConstraintSet()
+        constraintSet.clone(clMain)
+
+        constraintSet.clear(llColours.id, ConstraintSet.TOP)
+        constraintSet.clear(llColours.id, ConstraintSet.BOTTOM)
+        constraintSet.clear(llColours.id, ConstraintSet.END)
+        constraintSet.clear(llColours.id, ConstraintSet.START)
+
+        when (configuration.gravity) {
+            GravityEnum.BOTTOM_LEFT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, configuration.margin)
+                constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, configuration.margin)
+            }
+            GravityEnum.TOP_LEFT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.START, clMain.id, ConstraintSet.START, configuration.margin)
+                constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, configuration.margin)
+            }
+            GravityEnum.BOTTOM_RIGHT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, configuration.margin)
+                constraintSet.connect(llColours.id, ConstraintSet.BOTTOM, clMain.id, ConstraintSet.BOTTOM, configuration.margin)
+            }
+            GravityEnum.TOP_RIGHT -> {
+                constraintSet.connect(llColours.id, ConstraintSet.END, clMain.id, ConstraintSet.END, configuration.margin)
+                constraintSet.connect(llColours.id, ConstraintSet.TOP, clMain.id, ConstraintSet.TOP, configuration.margin)
+            }
+        }
+
+        constraintSet.applyTo(clMain)
+    }
+
+    private fun setupPaletteOrientation(configuration: PaletteConfiguration) {
+        when (configuration.orientation) {
+            OrientationEnum.HORIZONTAL -> llColours.orientation = LinearLayout.HORIZONTAL
+            OrientationEnum.VERTICAL -> llColours.orientation = LinearLayout.VERTICAL
+        }
+    }
+
+    private fun setupPaletteBackgroundColor(configuration: PaletteConfiguration) {
+        if (checkColorFormat(configuration.backgroundColor)) {
+            val gd = GradientDrawable()
+            gd.setColor(Color.parseColor(configuration.backgroundColor))
+            gd.cornerRadius = 34f
+            llColours.background = gd
+        }
+    }
+
+    private fun setupHighlightColor(configuration: PaletteConfiguration) {
+        if (checkColorFormat(configuration.highlightColor)) {
+            this.highlightColor = Color.parseColor(configuration.highlightColor)
+        } else {
+            @Suppress("DEPRECATION")
+            this.highlightColor = context.resources.getColor(R.color.defaultHighlightColor)
+        }
     }
 
     private fun checkColorFormat(color: String): Boolean {
@@ -280,11 +291,11 @@ class ImageEditorView(context: Context, attrs: AttributeSet?, defStyleAttr: Int)
         if (llColours.childCount > 0) {
             for (i in 0 until llColours.childCount) {
                 val child = llColours.getChildAt(i)
-                val ivHighlight = child.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight)
+                val ivHighlight = child.findViewById<ImageView>(R.id.ivHighlight)
                 ivHighlight.visibility = View.INVISIBLE
             }
         }
-        val ivHighlight = colorView.findViewById<ImageView>(com.example.test.imageeditorview.R.id.ivHighlight)
+        val ivHighlight = colorView.findViewById<ImageView>(R.id.ivHighlight)
         ivHighlight.visibility = View.VISIBLE
         ivHighlight.setColorFilter(highlightColor)
 
