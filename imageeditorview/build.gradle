@@ -1,11 +1,26 @@
 apply plugin: 'com.android.library'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-android'
+apply plugin: 'com.novoda.bintray-release'
+
+publish {
+
+    def groupProjectID = 'com.application.chindev.imageeditor'
+    def artifactProjectID = 'ImageEditor'
+    def publishVersionID = '0.1'
+
+    userOrg = 'chinbri'
+    repoName = 'ImageEditor'
+    groupId = groupProjectID
+    artifactId = artifactProjectID
+    publishVersion = publishVersionID
+    desc = 'Android image editor library'
+    website = 'https://github.com/chinbri/ImageEditor'
+
+}
 
 android {
     compileSdkVersion 28
-
-
 
     defaultConfig {
         minSdkVersion 21
